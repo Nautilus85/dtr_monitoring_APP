@@ -130,8 +130,39 @@ select {
     padding: 8px 0;
     border-bottom: 1px dashed #eee;
     font-size: 0.9em;
-    display: flex;
-    justify-content: space-between;
+    display: flex; /* Makes content and button sit side-by-side */
+    justify-content: space-between; /* Pushes content left and button right */
+    align-items: center; /* Vertically aligns content and button */
+}
+
+/* Style for the button container within the list item */
+.entry-actions {
+    /* Ensures the button doesn't take up too much space */
+    flex-shrink: 0; 
+}
+
+.entry-details {
+    /* Ensures the text wraps nicely */
+    flex-grow: 1; 
+}
+
+.action-btn {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+.delete-btn {
+    background-color: #dc3545; /* Red for deletion */
+    color: white;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
 }
 
 #dtr-log li span {
@@ -171,5 +202,6 @@ select {
     color: #dc3545;
     font-size: 1.1em;
 }
+
 
 
