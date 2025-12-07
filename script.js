@@ -12,12 +12,6 @@ function timeToMinutes(timeStr) {
 
 /**
  * Calculates work hours and categorizes them based on Location and Day of the Week.
- * @param {string} dtrDateStr - The date string (YYYY-MM-DD).
- * @param {string} location - The location string (used to determine standard hours).
- * @param {string} timeInStr 
- * @param {string} timeOutStr 
- * @param {number} breakMins 
- * @returns {object} - { netWorkHours, regularHours, saturdayHours, sundayHours, weekdayOT }
  */
 function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakMins) {
     const timeInMins = timeToMinutes(timeInStr);
@@ -25,7 +19,6 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
     
     let totalDurationMins = timeOutMins - timeInMins;
     if (totalDurationMins < 0) {
-        // Handle time crossing midnight (24 hours * 60 mins/hr = 1440)
         totalDurationMins += 1440;
     }
     
@@ -36,10 +29,8 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
         return { netWorkHours: 0, regularHours: 0, saturdayHours: 0, sundayHours: 0, weekdayOT: 0 };
     }
 
-    // Determine the day of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
-    // Use 'T00:00:00' to ensure correct date interpretation
     const date = new Date(dtrDateStr + 'T00:00:00');
-    const dayOfWeek = date.getDay(); 
+    const dayOfWeek = date.getDay(); // 0=Sunday, 6=Saturday
     
     let regularHoursLimit = 0;
     
@@ -57,9 +48,9 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
     
     // RULE 2 & 3: Apply Weekend Overtime Rules
     if (dayOfWeek === 6) { // Saturday
-        saturdayHours = netWorkHours; // All hours worked are calculated as overtime
+        saturdayHours = netWorkHours;
     } else if (dayOfWeek === 0) { // Sunday
-        sundayHours = netWorkHours; // All hours worked are calculated as high-premium overtime
+        sundayHours = netWorkHours;
     } else { // Monday to Friday
         regularHours = Math.min(netWorkHours, regularHoursLimit);
         weekdayOT = Math.max(0, netWorkHours - regularHoursLimit);
@@ -69,12 +60,13 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
 }
 
 /**
- * Saves a new DTR entry to Local Storage.
+ * Saves a new DTR entry and the current settings to Local Storage.
  */
 function saveDTR() {
     // 1. Get Input Values
     const monthlySalary = parseFloat(document.getElementById('monthly-salary').value) || 0;
-    const dtrLocation = document.getElementById('dtr-location').value; // NEW
+    const adminAllowance = parseFloat(document.getElementById('admin-allowance').value) || 0;
+    const dtrLocation = document.getElementById('dtr-location').value;
     const dtrDate = document.getElementById('dtr-date').value;
     const timeInStr = document.getElementById('time-in').value;
     const timeOutStr = document.getElementById('time-out').value;
@@ -84,6 +76,14 @@ function saveDTR() {
         alert("Please fill in Date, Time In, and Time Out.");
         return;
     }
+
+    // --- NEW: Save Monthly Salary and Admin Allowance Settings ---
+    const settings = {
+        monthlySalary: monthlySalary,
+        adminAllowance: adminAllowance
+    };
+    localStorage.setItem('dtrSettings', JSON.stringify(settings));
+    // -----------------------------------------------------------------
 
     // 2. Perform Daily Calculation
     const metrics = calculateDayMetrics(dtrDate, dtrLocation, timeInStr, timeOutStr, breakMinutes);
@@ -96,28 +96,21 @@ function saveDTR() {
     // 3. Create Entry Object
     const newEntry = {
         date: dtrDate,
-        location: dtrLocation, // NEW
+        location: dtrLocation,
         timeIn: timeInStr,
         timeOut: timeOutStr,
         breakMins: breakMinutes,
-        // Detailed hour breakdown for separate payment calculations
         regHrs: parseFloat(metrics.regularHours.toFixed(2)),
         satHrs: parseFloat(metrics.saturdayHours.toFixed(2)),
         sunHrs: parseFloat(metrics.sundayHours.toFixed(2)),
         otHrs: parseFloat(metrics.weekdayOT.toFixed(2)),
     };
 
-    // 4. Load, Check for Duplicates, and Save
+    // 4. Load, Check for Duplicates, and Save Entries
     let entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
-    
-    // Remove existing entry for the same date to allow editing
-    entries = entries.filter(entry => entry.date !== dtrDate);
-    
+    entries = entries.filter(entry => entry.date !== dtrDate); // Allows editing
     entries.push(newEntry);
-    
-    // Sort by date before saving
     entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-    
     localStorage.setItem('dtrEntries', JSON.stringify(entries));
 
     // 5. Update UI
@@ -135,8 +128,7 @@ function clearInputs() {
 }
 
 /**
- * Generates pay period options (1st half and 2nd half of each month)
- * (Function remains the same as previous version)
+ * Generates pay period options (remains the same).
  */
 function generatePayPeriods() {
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
@@ -182,7 +174,7 @@ function generatePayPeriods() {
 }
 
 /**
- * Filters entries by the selected pay period and updates the log and summary totals.
+ * Filters entries by the selected pay period and updates the log and summary totals (remains the same).
  */
 function renderSummary() {
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
@@ -199,11 +191,10 @@ function renderSummary() {
     
     let filteredEntries = [];
     let totalRegHrs = 0;
-    let totalOtHrs = 0; // This will now include weekday OT, Sat, and Sun hours
+    let totalOtHrs = 0;
     let totalSatHrs = 0;
     let totalSunHrs = 0;
     
-    // Filter logic (remains the same as previous version)
     if (selectedPeriodKey === 'All') {
         filteredEntries = entries;
     } else {
@@ -228,11 +219,10 @@ function renderSummary() {
         });
     }
 
-    // Accumulate Totals
     logList.innerHTML = '';
     filteredEntries.forEach(entry => {
         totalRegHrs += entry.regHrs;
-        totalOtHrs += entry.otHrs + entry.satHrs + entry.sunHrs; // Accumulate all non-regular hours here
+        totalOtHrs += entry.otHrs + entry.satHrs + entry.sunHrs;
         totalSatHrs += entry.satHrs;
         totalSunHrs += entry.sunHrs;
 
@@ -249,44 +239,44 @@ function renderSummary() {
     const monthlySalary = parseFloat(document.getElementById('monthly-salary').value) || 0;
     const adminAllowance = parseFloat(document.getElementById('admin-allowance').value) || 0;
     
-    // Calculation of Hourly Rate (HR)
     const annualSalary = monthlySalary * 12;
-    // Assume 261 working days per year (standard)
     const dailyRate = annualSalary / 261; 
-    const standardDailyHours = 8; // Use 8 hours for the divisor, regardless of the flexible 8/9.5 rule
+    const standardDailyHours = 8;
     const hourlyRate = dailyRate / standardDailyHours; 
     
-    // --- DOLE Overtime and Premium Rates ---
-    // HR = Hourly Rate
-    // Weekend OT: Saturday = 130% * HR (Rest Day work)
     const saturdayRate = hourlyRate * 1.30; 
-    // Sunday OT: Sunday = 150% * HR (Special Holiday or Higher Rest Day Premium)
-    // NOTE: We use 150% as a standard high premium for Sunday work.
     const sundayRate = hourlyRate * 1.50; 
-    // Weekday OT (Over 8/9.5 hours) = 125% * HR
     const weekdayOTRate = hourlyRate * 1.25; 
     
-    // Regular Pay (straight rate)
     const regularPay = totalRegHrs * hourlyRate;
     
-    // Premium Pay
     const saturdayPay = totalSatHrs * saturdayRate;
     const sundayPay = totalSunHrs * sundayRate;
-    const weekdayOtPay = (totalOtHrs - totalSatHrs - totalSunHrs) * weekdayOTRate; // Calculate OT from weekday only
+    const weekdayOtPay = (totalOtHrs - totalSatHrs - totalSunHrs) * weekdayOTRate;
 
     const totalGrossSalary = regularPay + saturdayPay + sundayPay + weekdayOtPay + adminAllowance;
 
     // Update Summary Boxes
     document.getElementById('total-reg-hrs').value = totalRegHrs.toFixed(2);
-    document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2); // Displays total OT (Sat/Sun/Weekday)
+    document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
 
 
 // --- INITIALIZATION ---
 window.onload = () => {
+    // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('dtr-date').value = today;
+
+    // --- NEW: Load saved salary and allowance ---
+    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
+    if (savedSettings) {
+        // Ensure values are numbers before setting
+        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || 0;
+        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || 0;
+    }
+    // ---------------------------------------------
     
     generatePayPeriods();
     renderSummary(); 
