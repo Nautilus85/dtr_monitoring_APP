@@ -30,6 +30,9 @@ const HOLIDAY_RATES = {
     SATURDAY: 1.30,
     // Rest Day (Sunday)
     SUNDAY: 1.50,
+    // NEW: Holiday falling on a Rest Day
+    REGULAR_HOLIDAY_RD: 2.60, // 200% * 1.30 = 260%
+    SPECIAL_HOLIDAY_RD: 1.69, // 130% * 1.30 = 169%
 };
 
 const STATIC_HOLIDAYS = {
@@ -257,7 +260,7 @@ function deleteEntry(dateToDelete) {
 
 /**
  * Calculates work hours and categorizes them based on Location, Day of the Week, and Holiday status.
- * (FIXED: Added Holiday logic and return values)
+ * (FIXED: Added logic for Holiday falling on a Rest Day)
  */
 function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakMins) {
     const timeInMins = timeToMinutes(timeInStr);
@@ -271,18 +274,23 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
     const netWorkMins = totalDurationMins - breakMins;
     const netWorkHours = netWorkMins / 60;
     
-    // NEW: Initialize holiday hours
+    // NEW: Initialize combined holiday/rest day hours
     let regularHolidayHrs = 0;
     let specialHolidayHrs = 0;
+    let regHolidayRDHrs = 0; // NEW
+    let specHolidayRDHrs = 0; // NEW
 
     if (netWorkHours <= 0) {
-        return { netWorkHours: 0, regularHours: 0, saturdayHours: 0, sundayHours: 0, weekdayOT: 0, regularHolidayHrs: 0, specialHolidayHrs: 0 };
+        return { netWorkHours: 0, regularHours: 0, saturdayHours: 0, sundayHours: 0, weekdayOT: 0, regularHolidayHrs: 0, specialHolidayHrs: 0, regHolidayRDHrs: 0, specHolidayRDHrs: 0 };
     }
 
     const date = new Date(dtrDateStr + 'T00:00:00');
     const dayOfWeek = date.getDay(); // 0=Sunday, 6=Saturday
-    const holidayType = getHolidayType(dtrDateStr); // NEW: Check for holiday
+    const holidayType = getHolidayType(dtrDateStr); 
     
+    // Check if the day is a rest day (Saturday or Sunday)
+    const isRestDay = (dayOfWeek === 0 || dayOfWeek === 6);
+
     let regularHoursLimit = 0;
     
     // RULE 1: Determine Regular Hours Limit based on Location
@@ -299,18 +307,26 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
     
     // --- HOLIDAY CHECK (Highest Priority) ---
     if (holidayType === 'REGULAR') {
-        regularHolidayHrs = netWorkHours;
+        if (isRestDay) {
+            regHolidayRDHrs = netWorkHours; // Regular Holiday + Rest Day
+        } else {
+            regularHolidayHrs = netWorkHours; // Regular Holiday only
+        }
     } else if (holidayType === 'SPECIAL') {
-        specialHolidayHrs = netWorkHours;
+        if (isRestDay) {
+            specHolidayRDHrs = netWorkHours; // Special Holiday + Rest Day
+        } else {
+            specialHolidayHrs = netWorkHours; // Special Holiday only
+        }
     }
     // --- END HOLIDAY CHECK ---
     
     // If not a holiday, proceed with normal rules (Weekend priority over Weekday)
-    else if (dayOfWeek === 6) { // Saturday
+    else if (dayOfWeek === 6) { // Saturday (Rest Day)
         saturdayHours = netWorkHours;
-    } else if (dayOfWeek === 0) { // Sunday
+    } else if (dayOfWeek === 0) { // Sunday (Rest Day)
         sundayHours = netWorkHours;
-    } else { // Monday to Friday
+    } else { // Monday to Friday (Regular Day)
         regularHours = Math.min(netWorkHours, regularHoursLimit);
         weekdayOT = Math.max(0, netWorkHours - regularHoursLimit);
     }
@@ -322,7 +338,9 @@ function calculateDayMetrics(dtrDateStr, location, timeInStr, timeOutStr, breakM
         sundayHours, 
         weekdayOT,
         regularHolidayHrs, 
-        specialHolidayHrs 
+        specialHolidayHrs,
+        regHolidayRDHrs, // NEW
+        specHolidayRDHrs, // NEW
     };
 }
 
@@ -364,8 +382,10 @@ function saveDTR() {
         satHrs: parseFloat(metrics.saturdayHours.toFixed(2)),
         sunHrs: parseFloat(metrics.sundayHours.toFixed(2)),
         otHrs: parseFloat(metrics.weekdayOT.toFixed(2)),
-        regHoliHrs: parseFloat(metrics.regularHolidayHrs.toFixed(2)), // ADDED
-        specHoliHrs: parseFloat(metrics.specialHolidayHrs.toFixed(2)), // ADDED
+        regHoliHrs: parseFloat(metrics.regularHolidayHrs.toFixed(2)), 
+        specHoliHrs: parseFloat(metrics.specialHolidayHrs.toFixed(2)),
+        regHolidayRDHrs: parseFloat(metrics.regHolidayRDHrs.toFixed(2)), // ADDED
+        specHolidayRDHrs: parseFloat(metrics.specHolidayRDHrs.toFixed(2)), // ADDED
     };
 
     let entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
@@ -491,12 +511,15 @@ function renderSummary() {
         });
     }
 
+    let filteredEntries = [];
     let totalRegHrs = 0;
-    let totalOtHrs = 0; // Total OT (Weekday + Sat + Sun + Holidays) for display
+    let totalOtHrs = 0; // Total OT for display
     let totalSatHrs = 0;
     let totalSunHrs = 0;
-    let totalRegHoliHrs = 0;
-    let totalSpecHoliHrs = 0;
+    let totalRegHoliHrs = 0; 
+    let totalSpecHoliHrs = 0; 
+    let totalRegHoliRDHrs = 0; // NEW
+    let totalSpecHoliRDHrs = 0; // NEW
     
     // Accumulate Totals
     logList.innerHTML = '';
@@ -509,11 +532,13 @@ function renderSummary() {
         totalRegHrs += entry.regHrs;
         totalSatHrs += entry.satHrs;
         totalSunHrs += entry.sunHrs;
-        totalRegHoliHrs += entry.regHoliHrs;
+        totalRegHoliHrs += entry.regHoliHrs; 
         totalSpecHoliHrs += entry.specHoliHrs;
+        totalRegHoliRDHrs += entry.regHolidayRDHrs; // NEW
+        totalSpecHoliRDHrs += entry.specHolidayRDHrs; // NEW
 
         // Accumulate ALL premium hours for the total-ot-hrs display
-        totalOtHrs += entry.otHrs + entry.satHrs + entry.sunHrs + entry.regHoliHrs + entry.specHoliHrs;
+        totalOtHrs += entry.otHrs + entry.satHrs + entry.sunHrs + entry.regHoliHrs + entry.specHoliHrs + entry.regHolidayRDHrs + entry.specHolidayRDHrs; // UPDATED
 
         const listItem = document.createElement('li');
         
@@ -570,14 +595,18 @@ function renderSummary() {
     const totalAllowancePay = dailyAllowance * daysWorkedInPeriod;
     
     // 3. Calculate Premium Pay (DOLE Rates)
-    const saturdayRate = hourlyRate * HOLIDAY_RATES.SATURDAY;
+   const saturdayRate = hourlyRate * HOLIDAY_RATES.SATURDAY;
     const sundayRate = hourlyRate * HOLIDAY_RATES.SUNDAY;
-    const weekdayOTRate = hourlyRate * 1.25; 
+    const weekdayOTRate = hourlyRate * 1.25;
     
     // Holiday Rates (200% and 130% pay)
     const regularHolidayRate = hourlyRate * HOLIDAY_RATES.REGULAR;
     const specialHolidayRate = hourlyRate * HOLIDAY_RATES.SPECIAL;
     
+    // NEW: Combined Holiday + Rest Day Rates
+    const regHolidayRDRate = hourlyRate * HOLIDAY_RATES.REGULAR_HOLIDAY_RD; // 260%
+    const specHolidayRDRate = hourlyRate * HOLIDAY_RATES.SPECIAL_HOLIDAY_RD; // 169%
+
     // Pay components
     const regularPay = totalRegHrs * hourlyRate;
     const saturdayPay = totalSatHrs * saturdayRate;
@@ -585,8 +614,12 @@ function renderSummary() {
     const regularHolidayPay = totalRegHoliHrs * regularHolidayRate;
     const specialHolidayPay = totalSpecHoliHrs * specialHolidayRate;
     
+    // NEW: Combined Holiday Pay
+    const regHolidayRDPay = totalRegHoliRDHrs * regHolidayRDRate;
+    const specHolidayRDPay = totalSpecHoliRDHrs * specHolidayRDRate;
+    
     // Weekday OT Pay: Total OT - (All Premium Hours)
-    const allPremiumHours = totalSatHrs + totalSunHrs + totalRegHoliHrs + totalSpecHoliHrs;
+    const allPremiumHours = totalSatHrs + totalSunHrs + totalRegHoliHrs + totalSpecHoliHrs + totalRegHoliRDHrs + totalSpecHoliRDHrs; // UPDATED
     const weekdayOtHours = totalOtHrs - allPremiumHours;
     const weekdayOtPay = weekdayOtHours * weekdayOTRate;
 
@@ -596,6 +629,8 @@ function renderSummary() {
                              + sundayPay 
                              + regularHolidayPay
                              + specialHolidayPay
+                             + regHolidayRDPay // ADDED
+                             + specHolidayRDPay // ADDED
                              + weekdayOtPay 
                              + totalAllowancePay;
 
@@ -606,6 +641,7 @@ function renderSummary() {
     document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
+
 
 
 
