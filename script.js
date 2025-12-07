@@ -1,3 +1,25 @@
+// --- INITIALIZATION ---
+window.onload = () => {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dtr-date').value = today;
+
+    // --- NEW: Load saved salary and allowance ---
+    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
+    if (savedSettings) {
+        // Ensure values are numbers before setting
+        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || 0;
+        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || 0;
+    }
+    // ---------------------------------------------
+    
+    generatePayPeriods(); // Calls renderSummary() implicitly
+    // renderSummary(); // Note: Removed this line because generatePayPeriods calls it
+    
+    document.getElementById('monthly-salary').addEventListener('input', renderSummary);
+    document.getElementById('admin-allowance').addEventListener('input', renderSummary);
+};
+
 // --- HOLIDAY DATA STRUCTURE & UTILITIES (MOVED TO TOP) ---
 const HOLIDAY_RATES = {
     // Regular Holidays (100% premium for working; total 200% pay)
@@ -283,3 +305,4 @@ function renderSummary() {
         if (entry.regHoliHrs > 0) hoursDisplay = `HOLIDAY (R): ${entry.regHoliHrs.toFixed(2)}h`;
         if (entry.specHoliHrs > 0) hoursDisplay = `HOLIDAY (S): ${entry.specHoliHrs.toFixed(2)}h`;
         if (entry.satHrs > 0 || entry.sunHrs > 0) hoursDisplay = `W/END: ${(entry.satHrs + entry.sun
+
