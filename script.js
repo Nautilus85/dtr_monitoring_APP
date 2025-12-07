@@ -275,34 +275,133 @@ function renderSummary() {
     const selectedPeriodKey = document.getElementById('pay-period-select').value;
     const logList = document.getElementById('dtr-log');
 
-    // ... [existing logic to handle empty entries] ...
+    // Logic to handle empty entries (using the first entry to define the selected pay period)
+    let filteredEntries = entries;
+    if (selectedPeriodKey !== 'All' && selectedPeriodKey !== 'No Data') {
+        const [year, month, day] = selectedPeriodKey.split('-').map(Number);
+        
+        filteredEntries = entries.filter(entry => {
+            const entryDate = new Date(entry.date + 'T00:00:00');
+            const entryYear = entryDate.getFullYear();
+            const entryMonth = entryDate.getMonth() + 1; // getMonth() is 0-indexed
+            const entryDay = entryDate.getDate();
 
-    let filteredEntries = [];
+            if (day === 15) {
+                return entryYear === year && entryMonth === month && entryDay <= 15;
+            } else if (day === 30) {
+                return entryYear === year && entryMonth === month && entryDay > 15;
+            }
+            return false;
+        });
+    }
+
     let totalRegHrs = 0;
     let totalOtHrs = 0; // Total OT (Weekday + Sat + Sun + Holidays) for display
     let totalSatHrs = 0;
     let totalSunHrs = 0;
-    let totalRegHoliHrs = 0; // ADDED
-    let totalSpecHoliHrs = 0; // ADDED
+    let totalRegHoliHrs = 0;
+    let totalSpecHoliHrs = 0;
     
-    // ... [existing filtering logic remains the same] ...
-
     // Accumulate Totals
     logList.innerHTML = '';
+    
+    if (filteredEntries.length === 0) {
+        logList.innerHTML = '<li style="text-align: center; color: #777;">No entries found for this period.</li>';
+    }
+
     filteredEntries.forEach(entry => {
         totalRegHrs += entry.regHrs;
         totalSatHrs += entry.satHrs;
         totalSunHrs += entry.sunHrs;
-        totalRegHoliHrs += entry.regHoliHrs; // ADDED
-        totalSpecHoliHrs += entry.specHoliHrs; // ADDED
+        totalRegHoliHrs += entry.regHoliHrs;
+        totalSpecHoliHrs += entry.specHoliHrs;
 
         // Accumulate ALL premium hours for the total-ot-hrs display
         totalOtHrs += entry.otHrs + entry.satHrs + entry.sunHrs + entry.regHoliHrs + entry.specHoliHrs;
 
         const listItem = document.createElement('li');
-        // Update display to include Holiday pay details
+        
+        // Determine the most significant hour type for the list display
         let hoursDisplay = `Reg: ${entry.regHrs.toFixed(2)}h`;
-        if (entry.regHoliHrs > 0) hoursDisplay = `HOLIDAY (R): ${entry.regHoliHrs.toFixed(2)}h`;
-        if (entry.specHoliHrs > 0) hoursDisplay = `HOLIDAY (S): ${entry.specHoliHrs.toFixed(2)}h`;
-        if (entry.satHrs > 0 || entry.sunHrs > 0) hoursDisplay = `W/END: ${(entry.satHrs + entry.sun
+        let color = '#007bff'; // Default color for Reg hours
+        
+        if (entry.regHoliHrs > 0) {
+            hoursDisplay = `HOLIDAY (R): ${entry.regHoliHrs.toFixed(2)}h`;
+            color = '#dc3545'; // Red for Regular Holiday
+        } else if (entry.specHoliHrs > 0) {
+            hoursDisplay = `HOLIDAY (S): ${entry.specHoliHrs.toFixed(2)}h`;
+            color = '#ffc107'; // Yellow for Special Holiday
+        } else if (entry.sunHrs > 0) {
+            hoursDisplay = `SUNDAY: ${entry.sunHrs.toFixed(2)}h`;
+            color = '#20c997'; // Greenish for Sunday
+        } else if (entry.satHrs > 0) {
+            hoursDisplay = `SATURDAY: ${entry.satHrs.toFixed(2)}h`;
+            color = '#17a2b8'; // Cyan for Saturday
+        } else if (entry.otHrs > 0) {
+             hoursDisplay = `OT (W/D): ${entry.otHrs.toFixed(2)}h`;
+             color = '#fd7e14'; // Orange for Weekday OT
+        }
+        
+        listItem.innerHTML = `
+            ${entry.date}: ${entry.location ? `(${entry.location})` : ''}
+            <span>${entry.timeIn} - ${entry.timeOut}</span>
+            <span style="color: ${color}; font-weight: bold;">${hoursDisplay}</span>
+        `;
+        logList.appendChild(listItem);
+    });
+    
+    // --- START UPDATED SALARY CALCULATION ---
+    const monthlySalary = parseFloat(document.getElementById('monthly-salary').value) || 0;
+    const adminAllowance = parseFloat(document.getElementById('admin-allowance').value) || 0;
+    
+    // 1. Calculate Base Hourly Rate (HR)
+    const annualSalary = monthlySalary * 12;
+    const dailyRate = annualSalary / 261; 
+    const standardDailyHours = 8; 
+    const hourlyRate = dailyRate / standardDailyHours; 
+    
+    // 2. Calculate Allowance Pay
+    const DAYS_IN_THE_MONTH_FOR_ALLOWANCE = 26;
+    const dailyAllowance = adminAllowance / DAYS_IN_THE_MONTH_FOR_ALLOWANCE;
+    const daysWorkedInPeriod = filteredEntries.length;
+    const totalAllowancePay = dailyAllowance * daysWorkedInPeriod;
+    
+    // 3. Calculate Premium Pay (DOLE Rates)
+    const saturdayRate = hourlyRate * HOLIDAY_RATES.SATURDAY;
+    const sundayRate = hourlyRate * HOLIDAY_RATES.SUNDAY;
+    const weekdayOTRate = hourlyRate * 1.25; 
+    
+    // Holiday Rates (200% and 130% pay)
+    const regularHolidayRate = hourlyRate * HOLIDAY_RATES.REGULAR;
+    const specialHolidayRate = hourlyRate * HOLIDAY_RATES.SPECIAL;
+    
+    // Pay components
+    const regularPay = totalRegHrs * hourlyRate;
+    const saturdayPay = totalSatHrs * saturdayRate;
+    const sundayPay = totalSunHrs * sundayRate;
+    const regularHolidayPay = totalRegHoliHrs * regularHolidayRate;
+    const specialHolidayPay = totalSpecHoliHrs * specialHolidayRate;
+    
+    // Weekday OT Pay: Total OT - (All Premium Hours)
+    const allPremiumHours = totalSatHrs + totalSunHrs + totalRegHoliHrs + totalSpecHoliHrs;
+    const weekdayOtHours = totalOtHrs - allPremiumHours;
+    const weekdayOtPay = weekdayOtHours * weekdayOTRate;
+
+    // 4. Final Gross Salary
+    const totalGrossSalary = regularPay 
+                             + saturdayPay 
+                             + sundayPay 
+                             + regularHolidayPay
+                             + specialHolidayPay
+                             + weekdayOtPay 
+                             + totalAllowancePay;
+
+    // --- END UPDATED SALARY CALCULATION ---
+
+    // Update Summary Boxes
+    document.getElementById('total-reg-hrs').value = totalRegHrs.toFixed(2);
+    document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
+    document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
+}
+
 
