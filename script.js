@@ -638,12 +638,14 @@ function renderSummary() {
 
     // Update Summary Boxes
     document.getElementById('total-reg-hrs').value = totalRegHrs.toFixed(2);
-    document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);// CRITICAL FIX: Format the Total Salary with thousands separators
+    document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
+    // CRITICAL FIX: Format the Total Salary with thousands separators
     document.getElementById('total-salary').value = totalGrossSalary.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
     });
 }
+
 
 
 
