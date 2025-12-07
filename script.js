@@ -130,6 +130,66 @@ function clearInputs() {
 /**
  * Generates pay period options (remains the same).
  */
+// --- HOLIDAY DATA STRUCTURE (Add this near the top of script.js) ---
+const HOLIDAY_RATES = {
+    // Regular Holidays (100% premium for working; total 200% pay)
+    REGULAR: 2.00, 
+    // Special Non-Working Holidays (30% premium for working; total 130% pay)
+    SPECIAL: 1.30, 
+    // Rest Day (Saturday) (30% premium for working; total 130% pay)
+    SATURDAY: 1.30,
+    // Rest Day (Sunday) (50% premium for working; total 150% pay - as per previous setup)
+    SUNDAY: 1.50,
+};
+
+// NOTE: Use YYYY-MM-DD format for lookup
+const STATIC_HOLIDAYS = {
+    // REGULAR HOLIDAYS (Use YYYY-MM-DD format)
+    "2025-01-01": { name: "New Year's Day", type: "REGULAR" },
+    "2025-05-01": { name: "Labor Day", type: "REGULAR" },
+    "2025-06-12": { name: "Independence Day", type: "REGULAR" },
+    "2025-11-30": { name: "Bonifacio Day", type: "REGULAR" },
+    "2025-12-25": { name: "Christmas Day", type: "REGULAR" },
+    "2025-12-30": { name: "Rizal Day", type: "REGULAR" },
+    
+    // SPECIAL NON-WORKING HOLIDAYS
+    "2025-02-25": { name: "EDSA Revolution Anniversary", type: "SPECIAL" },
+    "2025-04-09": { name: "Day of Valor", type: "SPECIAL" },
+    "2025-11-01": { name: "All Saints' Day", type: "SPECIAL" },
+    "2025-12-08": { name: "Feast of the Immaculate Conception", type: "SPECIAL" },
+    "2025-12-31": { name: "New Year's Eve", type: "SPECIAL" },
+    // NOTE: Moving holidays like Holy Week/Eid must be updated here or in the custom list.
+    "2025-04-18": { name: "Maundy Thursday", type: "REGULAR" }, 
+    "2025-04-19": { name: "Good Friday", type: "REGULAR" },
+    "2025-04-20": { name: "Easter Sunday", type: "SPECIAL" },
+};
+
+const HOLIDAYS_KEY = 'dtrCustomHolidays';
+
+/**
+ * Combines static holidays with user-saved holidays for reference.
+ * @param {string} dateStr - Date string (YYYY-MM-DD).
+ * @returns {string | null} 'REGULAR', 'SPECIAL', or null.
+ */
+function getHolidayType(dateStr) {
+    // 1. Check Static Holidays
+    if (STATIC_HOLIDAYS[dateStr]) {
+        return STATIC_HOLIDAYS[dateStr].type;
+    }
+
+    // 2. Check Custom (User-Saved) Holidays from Local Storage
+    try {
+        const customHolidays = JSON.parse(localStorage.getItem(HOLIDAYS_KEY)) || [];
+        const customHoliday = customHolidays.find(h => h.date === dateStr);
+        if (customHoliday) {
+            return customHoliday.type;
+        }
+    } catch (e) {
+        console.error("Could not read custom holidays:", e);
+    }
+    
+    return null;
+}
 function generatePayPeriods() {
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
     const select = document.getElementById('pay-period-select');
@@ -280,4 +340,5 @@ window.onload = () => {
     document.getElementById('monthly-salary').addEventListener('input', renderSummary);
     document.getElementById('admin-allowance').addEventListener('input', renderSummary);
 };
+
 
