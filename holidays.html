@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holiday Management</title>
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <div class="container">
+        <h1>📅 Holiday Management</h1>
+        <a href="index.html" class="back-button">← Back to DTR</a>
+        
+        <hr>
+
+        <h2>Add/Edit Holiday</h2>
+        <div class="input-group">
+            <label for="holiday-date">Date:</label>
+            <input type="date" id="holiday-date">
+        </div>
+        <div class="input-group">
+            <label for="holiday-name">Name:</label>
+            <input type="text" id="holiday-name" placeholder="e.g., Christmas Day">
+        </div>
+        <div class="input-group">
+            <label for="holiday-type">Type:</label>
+            <select id="holiday-type">
+                <option value="REGULAR">Regular Holiday (200% Pay)</option>
+                <option value="SPECIAL">Special Non-Working Holiday (130% Pay)</option>
+            </select>
+        </div>
+        <button onclick="saveHoliday()">Save Holiday</button>
+
+        <hr>
+
+        <h2>Saved Holidays</h2>
+        <div class="dtr-log-container">
+            <ul id="holiday-list">
+                </ul>
+        </div>
+        
+    </div>
+
+    <script src="holiday.js"></script>
+</body>
+</html>
