@@ -89,6 +89,21 @@ function timeToMinutes(timeStr) {
 }
 
 /**
+ * Permanently deletes all DTR entries, salary settings, and custom holidays 
+ * from the browser's Local Storage.
+ */
+function clearAllDTRData() {
+    if (confirm("WARNING: This will permanently delete ALL saved DTR entries, salary settings, and custom holidays. Are you sure you want to proceed?")) {
+        localStorage.removeItem('dtrEntries');
+        localStorage.removeItem('dtrSettings');
+        localStorage.removeItem(HOLIDAYS_KEY); // Use the constant HOLIDAYS_KEY defined earlier
+        
+        // Reload settings and summary to reflect the empty state
+        window.location.reload(); 
+    }
+}
+
+/**
  * Deletes a DTR entry based on its date.
  * @param {string} dateToDelete - The date (YYYY-MM-DD) of the entry to delete.
  */
@@ -458,6 +473,7 @@ function renderSummary() {
     document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
+
 
 
 
