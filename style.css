@@ -34,7 +34,17 @@ body {
 .holiday-button:hover {
     background-color: #ec971f;
 }
-
+/* Add this to style.css */
+.back-button {
+    display: inline-block;
+    margin-bottom: 15px;
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+}
+.back-button:hover {
+    text-decoration: underline;
+}
 h1 {
     text-align: center;
     color: #555;
@@ -161,4 +171,5 @@ select {
     color: #dc3545;
     font-size: 1.1em;
 }
+
 
