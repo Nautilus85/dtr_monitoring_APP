@@ -89,6 +89,25 @@ function timeToMinutes(timeStr) {
 }
 
 /**
+ * Deletes a DTR entry based on its date.
+ * @param {string} dateToDelete - The date (YYYY-MM-DD) of the entry to delete.
+ */
+function deleteEntry(dateToDelete) {
+    if (confirm(`Are you sure you want to delete the entry for ${dateToDelete}? This cannot be undone.`)) {
+        let entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
+        // Filter out the entry with the matching date
+        entries = entries.filter(entry => entry.date !== dateToDelete);
+        
+        localStorage.setItem('dtrEntries', JSON.stringify(entries));
+        
+        // Regenerate the UI
+        generatePayPeriods(); // Update period selector if necessary
+        renderSummary();     // Update the list and summary totals
+        alert(`Entry for ${dateToDelete} deleted successfully.`);
+    }
+}
+
+/**
  * Calculates work hours and categorizes them based on Location, Day of the Week, and Holiday status.
  * (FIXED: Added Holiday logic and return values)
  */
@@ -302,7 +321,7 @@ function generatePayPeriods() {
 function renderSummary() {
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
     const selectedPeriodKey = document.getElementById('pay-period-select').value;
-    const logList = document.getElementById('dtr-log');
+    const logList = document.getElementById('dtr-log');    
 
     // Logic to handle empty entries (using the first entry to define the selected pay period)
     let filteredEntries = entries;
@@ -371,11 +390,18 @@ function renderSummary() {
              color = '#fd7e14'; // Orange for Weekday OT
         }
         
+        // --- UPDATED LIST ITEM STRUCTURE ---
         listItem.innerHTML = `
-            ${entry.date}: ${entry.location ? `(${entry.location})` : ''}
-            <span>${entry.timeIn} - ${entry.timeOut}</span>
-            <span style="color: ${color}; font-weight: bold;">${hoursDisplay}</span>
+            <div class="entry-details">
+                ${entry.date}: ${entry.location ? `(${entry.location})` : ''}
+                <span style="color: ${color}; font-weight: bold;">${hoursDisplay}</span>
+            </div>
+            <div class="entry-actions">
+                <button onclick="deleteEntry('${entry.date}')" class="action-btn delete-btn">Delete</button>
+            </div>
         `;
+        // ------------------------------------
+        
         logList.appendChild(listItem);
     });
     
@@ -432,6 +458,7 @@ function renderSummary() {
     document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
+
 
 
 
