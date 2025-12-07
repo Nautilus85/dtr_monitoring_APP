@@ -230,16 +230,27 @@ function generatePayPeriods() {
     select.innerHTML = '';
     const periodsMap = new Map(); 
 
+    // Always include 'All' option
     periodsMap.set('All', 'All Entries');
 
     if (entries.length === 0) {
         const option = new Option('No Data', 'No Data');
         select.add(option);
+        renderSummary(); // Ensure summary runs even if empty
         return;
     }
 
+    // Use a temporary structure to easily find the latest date
+    let latestEntryDate = null;
+
     entries.forEach(entry => {
         const date = new Date(entry.date + 'T00:00:00');
+        
+        // Track the latest date
+        if (!latestEntryDate || date > latestEntryDate) {
+            latestEntryDate = date;
+        }
+
         const year = date.getFullYear();
         const month = date.getMonth();
         const monthName = date.toLocaleString('default', { month: 'short' });
@@ -255,15 +266,33 @@ function generatePayPeriods() {
             periodLabel = `${monthName} 16 - End, ${year}`;
         }
         
+        // Add unique periods
         periodsMap.set(periodKey, periodLabel);
     });
+    
+    // Convert Map to Array of options, excluding 'All' for sorting
+    const periodOptions = Array.from(periodsMap).filter(([key]) => key !== 'All');
 
-    periodsMap.forEach((label, key) => {
+    // Sort periods: latest period should be first (Reverse chronological order)
+    periodOptions.sort((a, b) => new Date(b[0]) - new Date(a[0]));
+
+    // Re-insert 'All' at the beginning
+    periodOptions.unshift(['All', 'All Entries']);
+
+    // Add sorted options to the selector
+    periodOptions.forEach(([key, label]) => {
         const option = new Option(label, key);
         select.add(option);
     });
-    
-    select.value = select.options[1] ? select.options[1].value : 'All';
+
+    // --- NEW LOGIC: Set the select value to the latest period ---
+    // The latest period is now the second element in the sorted array (index 1),
+    // provided there are entries (length > 1 because 'All' is index 0).
+    const latestPeriodKey = periodOptions.length > 1 ? periodOptions[1][0] : 'All';
+    select.value = latestPeriodKey;
+
+    // Call renderSummary() to display the entries for the selected period
+    renderSummary(); 
 }
 
 /**
@@ -403,5 +432,6 @@ function renderSummary() {
     document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
+
 
 
