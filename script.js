@@ -104,6 +104,139 @@ function clearAllDTRData() {
 }
 
 /**
+ * Prompts the user for a bulk deletion method and executes it.
+ */
+function promptBulkDelete() {
+    // 1. Ask the user how they want to delete data
+    const choice = prompt(
+        "Bulk Data Management:\n\n" +
+        "1. Delete by Pay Period (Enter 'P')\n" +
+        "2. Delete entries older than a specific date (Enter 'D')\n" +
+        "3. Cancel"
+    );
+
+    if (!choice) return; // User cancelled the prompt
+
+    const input = choice.toUpperCase().trim();
+    
+    if (input === 'P') {
+        bulkDeleteByPayPeriod();
+    } else if (input === 'D') {
+        bulkDeleteByDate();
+    } else {
+        alert("Invalid choice. Operation cancelled.");
+    }
+}
+
+
+/**
+ * Deletes all entries belonging to a pay period chosen by the user.
+ */
+function bulkDeleteByPayPeriod() {
+    const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
+    if (entries.length === 0) {
+        alert("No entries to delete.");
+        return;
+    }
+
+    // Get the pay period options that were generated earlier
+    const select = document.getElementById('pay-period-select');
+    // Exclude the first option ('All Entries')
+    const validOptions = Array.from(select.options).slice(1); 
+    
+    if (validOptions.length === 0) {
+        alert("No available pay periods to select.");
+        return;
+    }
+
+    // Prepare prompt text with period labels
+    let promptText = "Enter the number corresponding to the Pay Period you want to DELETE:\n\n";
+    validOptions.forEach((option, index) => {
+        // Use the index + 1 for user-friendly numbering
+        promptText += `${index + 1}. ${option.text}\n`; 
+    });
+
+    const userIndex = prompt(promptText);
+    const indexToDelete = parseInt(userIndex) - 1;
+
+    if (isNaN(indexToDelete) || indexToDelete < 0 || indexToDelete >= validOptions.length) {
+        alert("Invalid selection. Deletion cancelled.");
+        return;
+    }
+
+    const periodKeyToDelete = validOptions[indexToDelete].value;
+    const periodLabel = validOptions[indexToDelete].text;
+
+    if (!confirm(`WARNING: Are you sure you want to PERMANENTLY delete ALL entries for ${periodLabel}?`)) {
+        return;
+    }
+    
+    // Logic to filter out the selected pay period entries
+    const [year, month, day] = periodKeyToDelete.split('-').map(Number);
+    
+    const remainingEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date + 'T00:00:00');
+        const entryYear = entryDate.getFullYear();
+        const entryMonth = entryDate.getMonth() + 1;
+        const entryDay = entryDate.getDate();
+
+        // Check if the entry date falls outside the period being deleted
+        if (entryYear === year && entryMonth === month) {
+            if (day === 15 && entryDay <= 15) return false; // Delete first half
+            if (day === 30 && entryDay > 15) return false; // Delete second half
+        }
+        return true; // Keep the entry
+    });
+
+    localStorage.setItem('dtrEntries', JSON.stringify(remainingEntries));
+    
+    // Update the UI
+    generatePayPeriods(); 
+    renderSummary(); 
+    alert(`Successfully deleted all entries for ${periodLabel}.`);
+}
+
+/**
+ * Deletes all entries older than a date specified by the user.
+ */
+function bulkDeleteByDate() {
+    const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
+    if (entries.length === 0) {
+        alert("No entries to delete.");
+        return;
+    }
+    
+    const dateInput = prompt("Enter the CUT-OFF Date (YYYY-MM-DD). All entries BEFORE this date will be deleted:");
+    
+    if (!dateInput) return; // User cancelled
+    
+    // Create a comparable date object for the cut-off date
+    const cutOffDate = new Date(dateInput + 'T00:00:00');
+    
+    if (isNaN(cutOffDate)) {
+        alert("Invalid date format. Please use YYYY-MM-DD.");
+        return;
+    }
+    
+    if (!confirm(`WARNING: Are you sure you want to PERMANENTLY delete all entries dated BEFORE ${dateInput}?`)) {
+        return;
+    }
+    
+    const remainingEntries = entries.filter(entry => {
+        const entryDate = new Date(entry.date + 'T00:00:00');
+        // Keep entries where the entry date is the same as or after the cut-off date
+        return entryDate >= cutOffDate;
+    });
+
+    localStorage.setItem('dtrEntries', JSON.stringify(remainingEntries));
+    
+    // Update the UI
+    generatePayPeriods(); 
+    renderSummary(); 
+    alert(`Successfully deleted all entries older than ${dateInput}.`);
+}
+
+/**
  * Deletes a DTR entry based on its date.
  * @param {string} dateToDelete - The date (YYYY-MM-DD) of the entry to delete.
  */
@@ -473,6 +606,7 @@ function renderSummary() {
     document.getElementById('total-ot-hrs').value = totalOtHrs.toFixed(2);
     document.getElementById('total-salary').value = totalGrossSalary.toFixed(2);
 }
+
 
 
 
