@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DTR & Salary Monitor</title>
+    <title>My Daily Time Record</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <h1>🗓️ Daily Time Record & Salary Calculator</h1>
+        <h1>My Daily Time Record</h1>
         
         <div class="input-group">
-            <label for="rate">Hourly Rate (e.g., 100):</label>
-            <input type="number" id="rate" value="100" min="0">
+            <label for="monthly-salary">Monthly Salary:</label>
+            <input type="number" id="monthly-salary" value="20000" min="0">
         </div>
-
+        <div class="input-group">
+            <label for="admin-allowance">Admin Allowance:</label>
+            <input type="number" id="admin-allowance" value="0" min="0">
+        </div>
+        
+        <hr>
+        
         <div class="time-inputs">
-            <h2>Record Today's Time</h2>
+            <div class="input-group">
+                <label for="dtr-date">Date:</label>
+                <input type="date" id="dtr-date" value="">
+            </div>
             <div class="input-group">
                 <label for="time-in">Time In:</label>
                 <input type="time" id="time-in" value="09:00">
@@ -29,14 +38,39 @@
                 <label for="break-minutes">Break Time (Minutes):</label>
                 <input type="number" id="break-minutes" value="60" min="0">
             </div>
-            <button onclick="calculateSalary()">Calculate Day's Pay</button>
+            
+            <div class="button-group">
+                <button onclick="saveDTR()">Save</button>
+                <button onclick="clearInputs()">Cancel</button>
+            </div>
         </div>
+        
+        <hr>
 
-        <div class="results">
-            <h2>Daily Summary</h2>
-            <p>Net Work Hours: <span id="work-hours">0</span> hours</p>
-            <p>Gross Daily Pay: **₱<span id="daily-pay">0.00</span>**</p>
+        <h2>List for Pay Period:</h2>
+        <select id="pay-period-select" onchange="renderSummary()"></select>
+        
+        <div class="dtr-log-container">
+            <ul id="dtr-log">
+                <li style="text-align: center; color: #777;">No entries saved yet.</li>
+            </ul>
         </div>
+        
+        <div class="summary-box">
+            <div class="summary-row">
+                <label>Total Reg Hrs:</label>
+                <input type="text" id="total-reg-hrs" value="0.00" readonly>
+            </div>
+            <div class="summary-row">
+                <label>Total OT Hrs:</label>
+                <input type="text" id="total-ot-hrs" value="0.00" readonly>
+            </div>
+            <div class="summary-row total-salary">
+                <label>Total Salary:</label>
+                <input type="text" id="total-salary" value="0.00" readonly>
+            </div>
+        </div>
+        
     </div>
 
     <script src="script.js"></script>
