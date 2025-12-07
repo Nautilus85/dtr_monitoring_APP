@@ -18,6 +18,23 @@ body {
     max-width: 450px;
 }
 
+.holiday-button {
+    display: block;
+    text-align: center;
+    background-color: #f0ad4e; /* Warning/Orange color */
+    color: white;
+    padding: 8px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.holiday-button:hover {
+    background-color: #ec971f;
+}
+
 h1 {
     text-align: center;
     color: #555;
@@ -144,3 +161,4 @@ select {
     color: #dc3545;
     font-size: 1.1em;
 }
+
