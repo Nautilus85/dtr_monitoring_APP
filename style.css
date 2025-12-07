@@ -20,19 +20,19 @@ body {
 
 h1 {
     text-align: center;
-    color: #007bff;
+    color: #555;
     margin-bottom: 20px;
 }
 
-h2 {
-    border-bottom: 2px solid #eee;
-    padding-bottom: 5px;
-    margin-top: 20px;
-    color: #555;
+hr {
+    border: 0;
+    height: 1px;
+    background-color: #ddd;
+    margin: 20px 0;
 }
 
-.input-group, .time-inputs {
-    margin-bottom: 15px;
+.input-group {
+    margin-bottom: 10px;
 }
 
 label {
@@ -41,37 +41,106 @@ label {
     font-weight: bold;
 }
 
-input[type="number"], input[type="time"] {
+input[type="number"], 
+input[type="time"],
+input[type="date"],
+select {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
     box-sizing: border-box; /* Crucial for full width */
 }
 
-button {
-    background-color: #28a745;
-    color: white;
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.button-group button {
+    flex-grow: 1;
     padding: 10px 15px;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 16px;
-    width: 100%;
     transition: background-color 0.3s;
 }
 
-button:hover {
-    background-color: #218838;
+.button-group button:first-child { /* Save button */
+    background-color: #007bff;
+    color: white;
 }
 
-.results p {
-    font-size: 1.1em;
-    padding: 5px 0;
+.button-group button:last-child { /* Cancel button */
+    background-color: #6c757d;
+    color: white;
 }
 
-.results span {
+/* Log and Summary Styles */
+#pay-period-select {
+    margin-bottom: 10px;
+}
+
+.dtr-log-container {
+    height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    background-color: #fafafa;
+}
+
+#dtr-log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#dtr-log li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+}
+
+#dtr-log li span {
     font-weight: bold;
+    color: #007bff;
+}
+
+/* Summary Box Styling */
+.summary-box {
+    padding: 10px;
+    border: 2px solid #007bff;
+    border-radius: 5px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.summary-row label {
+    font-weight: normal;
+    font-size: 1em;
+}
+
+.summary-row input[type="text"] {
+    width: 150px;
+    text-align: right;
+    font-weight: bold;
+    border: none;
+    background: transparent;
+    padding: 0;
+}
+
+.total-salary input {
     color: #dc3545;
+    font-size: 1.1em;
 }
