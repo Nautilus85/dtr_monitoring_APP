@@ -492,6 +492,7 @@ function renderSummary() {
     const logList = document.getElementById('dtr-log');    
 
     // Logic to handle empty entries (using the first entry to define the selected pay period)
+    let filteredEntries = [];
     let filteredEntries = entries; // <-- Declaration 1
     if (selectedPeriodKey !== 'All' && selectedPeriodKey !== 'No Data') {
         const [year, month, day] = selectedPeriodKey.split('-').map(Number);
@@ -644,6 +645,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
