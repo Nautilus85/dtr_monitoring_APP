@@ -690,10 +690,10 @@ function renderSummary() {
     const adminAllowance = parseFloat(document.getElementById('admin-allowance').value) || 0;
     
     // 1. Calculate Base Hourly Rate (HR)
-    const annualSalary = monthlySalary * 12;
-    const dailyRate = annualSalary / 261; 
-    const standardDailyHours = 8; 
-    const hourlyRate = dailyRate / standardDailyHours; 
+    // 1. Calculate Base Hourly Rate (HR) based on 26-day EMR
+    const standardDailyHours = 8;
+    const dailyRate = monthlySalary / 26; // <-- FIXED: Uses your 26-day divisor
+    const hourlyRate = dailyRate / standardDailyHours;
     
     // 2. Calculate Allowance Pay
     const DAYS_IN_THE_MONTH_FOR_ALLOWANCE = 26;
@@ -752,6 +752,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
