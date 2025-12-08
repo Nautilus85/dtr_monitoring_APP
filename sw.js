@@ -6,8 +6,9 @@ const urlsToCache = [
     '/script.js',
     '/holiday.js',
     '/style.css',
-    '/images/myicon1.png', // Add your icon paths
-    '/images/myicon2.png',
+    // Change your sw.js to match the sizes you declared in manifest.json:
+    '/images/icon-192x192.png', 
+    '/images/icon-512x512.png',
     // Add any other key assets (like bootstrap/font files if you use them)
 ];
 
