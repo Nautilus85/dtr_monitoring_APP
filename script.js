@@ -1,41 +1,4 @@
 // --- INITIALIZATION ---
-const HOLIDAYS_KEY = 'dtrCustomHolidays';
-const STATIC_HOLIDAYS_KEY = 'dtrStatutoryHolidays'; // <-- NEW KEY for the default list
-// Variable to hold the active, mutable statutory holidays
-let loadedStatutoryHolidays = {};
-
-window.onload = () => {
-    // Set today's date as default
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('dtr-date').value = today;
-
-    // --- NEW: Holiday Initialization and Persistence ---
-    const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
-    if (savedStatutory) {
-        // 1. Load the editable holidays from storage
-        loadedStatutoryHolidays = JSON.parse(savedStatutory);
-    } else {
-        // 2. If not saved, use the hardcoded constant and save it for the future
-        loadedStatutoryHolidays = STATIC_HOLIDAYS;
-        localStorage.setItem(STATIC_HOLIDAYS_KEY, JSON.stringify(STATIC_HOLIDAYS));
-        console.log("Statutory holidays initialized and saved for potential modification.");
-    }
-    // ---------------------------------------------------
-
-    // Load saved salary and allowance
-    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
-    if (savedSettings) {
-        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || '';
-        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || '';
-    }
-    
-    generatePayPeriods(); // Calls renderSummary() implicitly
-    // renderSummary(); // Note: Removed this line because generatePayPeriods calls it
-    
-    document.getElementById('monthly-salary').addEventListener('input', renderSummary);
-    document.getElementById('admin-allowance').addEventListener('input', renderSummary);
-};
-
 // --- HOLIDAY DATA STRUCTURE & UTILITIES (MOVED TO TOP) ---
 const HOLIDAY_RATES = {
     // Regular Holidays (100% premium for working; total 200% pay)
@@ -76,6 +39,40 @@ const HOLIDAYS_KEY = 'dtrCustomHolidays';
 const STATIC_HOLIDAYS_KEY = 'dtrStatutoryHolidays'; // <-- NEW KEY for the default list
 // Variable to hold the active, mutable statutory holidays
 let loadedStatutoryHolidays = {}; 
+
+window.onload = () => {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dtr-date').value = today;
+
+    // --- NEW: Holiday Initialization and Persistence ---
+    const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
+    if (savedStatutory) {
+        // 1. Load the editable holidays from storage
+        loadedStatutoryHolidays = JSON.parse(savedStatutory);
+    } else {
+        // 2. If not saved, use the hardcoded constant and save it for the future
+        loadedStatutoryHolidays = STATIC_HOLIDAYS;
+        localStorage.setItem(STATIC_HOLIDAYS_KEY, JSON.stringify(STATIC_HOLIDAYS));
+        console.log("Statutory holidays initialized and saved for potential modification.");
+    }
+    // ---------------------------------------------------
+
+    // Load saved salary and allowance
+    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
+    if (savedSettings) {
+        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || '';
+        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || '';
+    }
+    
+    generatePayPeriods(); // Calls renderSummary() implicitly
+    // renderSummary(); // Note: Removed this line because generatePayPeriods calls it
+    
+    document.getElementById('monthly-salary').addEventListener('input', renderSummary);
+    document.getElementById('admin-allowance').addEventListener('input', renderSummary);
+};
+
+
 
 /**
  * Combines static holidays with user-saved holidays for reference.
@@ -736,6 +733,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
