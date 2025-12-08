@@ -4,14 +4,21 @@ window.onload = () => {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('dtr-date').value = today;
 
-    // --- NEW: Load saved salary and allowance ---
-    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
-    if (savedSettings) {
-        // Ensure values are numbers before setting
-        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || 0;
-        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || 0;
+    // --- NEW: Holiday Initialization and Persistence ---
+    const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
+    if (savedStatutory) {
+        // 1. Load the editable holidays from storage
+        loadedStatutoryHolidays = JSON.parse(savedStatutory);
+    } else {
+        // 2. If not saved, use the hardcoded constant and save it for the future
+        loadedStatutoryHolidays = STATIC_HOLIDAYS;
+        localStorage.setItem(STATIC_HOLIDAYS_KEY, JSON.stringify(STATIC_HOLIDAYS));
+        console.log("Statutory holidays initialized and saved for potential modification.");
     }
-    // ---------------------------------------------
+    // ---------------------------------------------------
+
+    // Load saved salary and allowance
+    const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
     
     generatePayPeriods(); // Calls renderSummary() implicitly
     // renderSummary(); // Note: Removed this line because generatePayPeriods calls it
@@ -57,6 +64,9 @@ const STATIC_HOLIDAYS = {
 };
 
 const HOLIDAYS_KEY = 'dtrCustomHolidays';
+const STATIC_HOLIDAYS_KEY = 'dtrStatutoryHolidays'; // <-- NEW KEY for the default list
+// Variable to hold the active, mutable statutory holidays
+let loadedStatutoryHolidays = {}; 
 
 /**
  * Combines static holidays with user-saved holidays for reference.
@@ -64,9 +74,12 @@ const HOLIDAYS_KEY = 'dtrCustomHolidays';
  * @returns {string | null} 'REGULAR', 'SPECIAL', or null.
  */
 function getHolidayType(dateStr) {
-    if (STATIC_HOLIDAYS[dateStr]) {
-        return STATIC_HOLIDAYS[dateStr].type;
+    // 1. Check the active, loaded (and potentially modified) statutory holidays
+    if (loadedStatutoryHolidays[dateStr]) {
+        return loadedStatutoryHolidays[dateStr].type;
     }
+    
+    // 2. Check user-defined custom holidays
     try {
         const customHolidays = JSON.parse(localStorage.getItem(HOLIDAYS_KEY)) || [];
         const customHoliday = customHolidays.find(h => h.date === dateStr);
@@ -99,7 +112,8 @@ function clearAllDTRData() {
     if (confirm("WARNING: This will permanently delete ALL saved DTR entries, salary settings, and custom holidays. Are you sure you want to proceed?")) {
         localStorage.removeItem('dtrEntries');
         localStorage.removeItem('dtrSettings');
-        localStorage.removeItem(HOLIDAYS_KEY); // Use the constant HOLIDAYS_KEY defined earlier
+        localStorage.removeItem(HOLIDAYS_KEY); 
+        localStorage.removeItem(STATIC_HOLIDAYS_KEY); // <-- ADDED
         
         // Reload settings and summary to reflect the empty state
         window.location.reload(); 
@@ -705,6 +719,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
