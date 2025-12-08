@@ -54,7 +54,7 @@ window.onload = () => {
     } else {
         greeting = "Good Evening!";
     }
-    
+    alert(greeting  + " start");
     // --- NEW: Holiday Initialization and Persistence ---
     const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
     alert(greeting \n + "start");
@@ -747,6 +747,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
