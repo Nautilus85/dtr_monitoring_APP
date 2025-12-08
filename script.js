@@ -123,6 +123,28 @@ function displayEntryDetails(date) {
         return;
     }
 
+    // --- NEW: Dynamic Hour Breakdown Filtering ---
+    const hourBreakdown = [
+        { label: 'Regular Hours', value: entry.regHrs },
+        { label: 'Weekday OT', value: entry.otHrs },
+        { label: 'Saturday Pay', value: entry.satHrs },
+        { label: 'Sunday Pay', value: entry.sunHrs },
+        { label: 'Regular Holiday', value: entry.regHoliHrs },
+        { label: 'Special Holiday', value: entry.specHoliHrs },
+        { label: 'Reg Holiday + Rest Day', value: entry.regHolidayRDHrs },
+        { label: 'Spec Holiday + Rest Day', value: entry.specHolidayRDHrs }
+    ];
+
+    // Filter out entries where the value is zero or less
+    const nonZeroBreakdown = hourBreakdown.filter(item => item.value > 0);
+
+    // Generate list items for non-zero values
+    const breakdownListHtml = nonZeroBreakdown.map(item => 
+        // Use strong for the value to emphasize it
+        `<li>${item.label}: <strong>${item.value.toFixed(2)}</strong></li>`
+    ).join('');
+    // ---------------------------------------------
+
     // Prepare the content using HTML formatting
     const detailsHtml = `
         <p><strong>Date:</strong> ${entry.date}</p>
@@ -130,15 +152,8 @@ function displayEntryDetails(date) {
         <p><strong>Location:</strong> ${entry.location || 'N/A'}</p>
         <hr>
         <h4>Hour Breakdown (Hours.Mins)</h4>
-        <ul>
-            <li>Regular Hours: <strong>${entry.regHrs.toFixed(2)}</strong></li>
-            <li>Weekday OT: ${entry.otHrs.toFixed(2)}</li>
-            <li>Saturday Pay: ${entry.satHrs.toFixed(2)}</li>
-            <li>Sunday Pay: ${entry.sunHrs.toFixed(2)}</li>
-            <li>Regular Holiday: ${entry.regHoliHrs.toFixed(2)}</li>
-            <li>Special Holiday: ${entry.specHoliHrs.toFixed(2)}</li>
-            <li>Reg Holiday + Rest Day: ${entry.regHolidayRDHrs.toFixed(2)}</li>
-            <li>Spec Holiday + Rest Day: ${entry.specHolidayRDHrs.toFixed(2)}</li>
+        <ul style="list-style: none; padding-left: 0;">
+            ${breakdownListHtml.length > 0 ? breakdownListHtml : '<li>No premium hours recorded.</li>'}
         </ul>
     `;
 
@@ -690,6 +705,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
