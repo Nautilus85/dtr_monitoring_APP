@@ -6,8 +6,8 @@ const urlsToCache = [
     '/script.js',
     '/holiday.js',
     '/style.css',
-    '/images/myicon.ico', // Add your icon paths
-    '/images/icon-512x512.png',
+    '/images/myicon.png', // Add your icon paths
+    '/images/myicon.png',
     // Add any other key assets (like bootstrap/font files if you use them)
 ];
 
