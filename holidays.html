@@ -13,29 +13,30 @@
         
         <hr>
 
-        <h2>Add/Edit Holiday</h2>
-        <div class="input-group">
-            <label for="holiday-date">Date:</label>
-            <input type="date" id="holiday-date">
-        </div>
-        <div class="input-group">
-            <label for="holiday-name">Name:</label>
-            <input type="text" id="holiday-name" placeholder="e.g., Christmas Day">
-        </div>
-        <div class="input-group">
-            <label for="holiday-type">Type:</label>
-            <select id="holiday-type">
-                <option value="REGULAR">Regular Holiday (200% Pay)</option>
-                <option value="SPECIAL">Special Non-Working Holiday (130% Pay)</option>
-            </select>
-        </div>
-        <button onclick="saveHoliday()">Save Holiday</button>
-
-        <hr>
+        <h2>Add/Edit Holiday</h2>
+        <form onsubmit="saveHoliday(); return false;"> 
+            <div class="input-group">
+                <label for="holiday-date">Date:</label>
+                <input type="date" id="holiday-date">
+            </div>
+            <div class="input-group">
+                <label for="holiday-name">Name:</label>
+                <input type="text" id="holiday-name" placeholder="e.g., Christmas Day">
+            </div>
+            <div class="input-group">
+                <label for="holiday-type">Type:</label>
+                <select id="holiday-type">
+                    <option value="REGULAR">Regular Holiday (200% Pay)</option>
+                    <option value="SPECIAL">Special Non-Working Holiday (130% Pay)</option>
+                </select>
+                                <input type="hidden" id="is-statutory-flag" value="false"> 
+            </div>
+            <button type="submit">Save Holiday</button> </form>
+                <hr>
 
         <h2>Saved Holidays</h2>
         <div class="dtr-log-container">
-            <ul id="holiday-list">
+            <ul id="saved-holidays-list">
                 </ul>
         </div>
         
