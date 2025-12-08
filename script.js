@@ -107,6 +107,49 @@ function clearAllDTRData() {
 }
 
 /**
+ * Displays detailed information about a selected DTR entry.
+ * @param {string} date - The date (YYYY-MM-DD) of the entry to display.
+ */
+function displayEntryDetails(date) {
+    const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
+    const entry = entries.find(e => e.date === date);
+
+    const detailBox = document.getElementById('entry-detail-box');
+    const detailContent = document.getElementById('detail-content');
+
+    if (!entry) {
+        detailContent.innerHTML = `<p style="color: red;">Error: Entry for ${date} not found.</p>`;
+        detailBox.style.display = 'block';
+        return;
+    }
+
+    // Prepare the content using HTML formatting
+    const detailsHtml = `
+        <p><strong>Date:</strong> ${entry.date}</p>
+        <p><strong>Time:</strong> ${entry.timeIn} - ${entry.timeOut} (Break: ${entry.breakMins} mins)</p>
+        <p><strong>Location:</strong> ${entry.location || 'N/A'}</p>
+        <hr>
+        <h4>Hour Breakdown (Hours.Mins)</h4>
+        <ul>
+            <li>Regular Hours: <strong>${entry.regHrs.toFixed(2)}</strong></li>
+            <li>Weekday OT: ${entry.otHrs.toFixed(2)}</li>
+            <li>Saturday Pay: ${entry.satHrs.toFixed(2)}</li>
+            <li>Sunday Pay: ${entry.sunHrs.toFixed(2)}</li>
+            <li>Regular Holiday: ${entry.regHoliHrs.toFixed(2)}</li>
+            <li>Special Holiday: ${entry.specHoliHrs.toFixed(2)}</li>
+            <li>Reg Holiday + Rest Day: ${entry.regHolidayRDHrs.toFixed(2)}</li>
+            <li>Spec Holiday + Rest Day: ${entry.specHolidayRDHrs.toFixed(2)}</li>
+        </ul>
+    `;
+
+    detailContent.innerHTML = detailsHtml;
+    detailBox.style.display = 'block'; // Make the box visible
+    
+    // Scroll the detail box into view for better UX
+    detailBox.scrollIntoView({ behavior: 'smooth' });
+}
+
+/**
  * Prompts the user for a bulk deletion method and executes it.
  */
 function promptBulkDelete() {
@@ -647,6 +690,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
