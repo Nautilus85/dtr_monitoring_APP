@@ -1,5 +1,5 @@
 {
-  "name": "DTR Calculator",
+  "name": "DTR Monitoring",
   "short_name": "DTR App",
   "description": "Daily Time Record and Salary Calculator",
   "start_url": "./index.html",
