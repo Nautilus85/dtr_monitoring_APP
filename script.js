@@ -1,4 +1,9 @@
 // --- INITIALIZATION ---
+const HOLIDAYS_KEY = 'dtrCustomHolidays';
+const STATIC_HOLIDAYS_KEY = 'dtrStatutoryHolidays'; // <-- NEW KEY for the default list
+// Variable to hold the active, mutable statutory holidays
+let loadedStatutoryHolidays = {};
+
 window.onload = () => {
     // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
@@ -731,6 +736,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
