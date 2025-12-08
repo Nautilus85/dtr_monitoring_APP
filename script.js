@@ -585,7 +585,7 @@ function renderSummary() {
 
         const listItem = document.createElement('li');
         // Correct way to pass the date string to the function
-        listItem.onclick = () => displayEntryDetails(' + entry.date + ');
+        listItem.onclick = () => displayEntryDetails(entry.date);
         
         // Determine the most significant hour type for the list display
         let hoursDisplay = `Reg: ${entry.regHrs.toFixed(2)}h`;
@@ -690,3 +690,4 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
