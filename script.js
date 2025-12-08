@@ -690,20 +690,3 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
