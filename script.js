@@ -57,6 +57,7 @@ window.onload = () => {
     
     // --- NEW: Holiday Initialization and Persistence ---
     const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
+    alert(greeting \n + "start");
     if (savedStatutory) {
         // 1. Load the editable holidays from storage
         loadedStatutoryHolidays = JSON.parse(savedStatutory);
@@ -746,6 +747,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
