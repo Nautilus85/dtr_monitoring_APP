@@ -19,6 +19,10 @@ window.onload = () => {
 
     // Load saved salary and allowance
     const savedSettings = JSON.parse(localStorage.getItem('dtrSettings'));
+    if (savedSettings) {
+        document.getElementById('monthly-salary').value = savedSettings.monthlySalary || '';
+        document.getElementById('admin-allowance').value = savedSettings.adminAllowance || '';
+    }
     
     generatePayPeriods(); // Calls renderSummary() implicitly
     // renderSummary(); // Note: Removed this line because generatePayPeriods calls it
@@ -562,7 +566,15 @@ function generatePayPeriods() {
 function renderSummary() {
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
     const selectedPeriodKey = document.getElementById('pay-period-select').value;
-    const logList = document.getElementById('dtr-log');    
+    const logList = document.getElementById('dtr-log');
+
+    if (selectedPeriodKey === 'No Data') {
+        logList.innerHTML = '<li style="text-align: center; color: #777;">No entries found.</li>';
+        document.getElementById('total-reg-hrs').value = (0).toFixed(2);
+        document.getElementById('total-ot-hrs').value = (0).toFixed(2);
+        document.getElementById('total-salary').value = (0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        return;
+    }
 
     // Logic to handle empty entries (using the first entry to define the selected pay period)
     let filteredEntries = entries; // <-- Declaration 1
@@ -719,6 +731,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
