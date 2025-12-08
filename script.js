@@ -543,7 +543,7 @@ function renderSummary() {
 
         const listItem = document.createElement('li');
         // Make the entire list item clickable to display details
-        listItem.onclick = () => displayEntryDetails('${entry.date}');
+        listItem.onclick = () => displayEntryDetails(' + entry.date + ');
         
         // Determine the most significant hour type for the list display
         let hoursDisplay = `Reg: ${entry.regHrs.toFixed(2)}h`;
@@ -648,6 +648,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
