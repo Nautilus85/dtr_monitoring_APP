@@ -111,7 +111,7 @@ function clearAllDTRData() {
  * @param {string} date - The date (YYYY-MM-DD) of the entry to display.
  */
 function displayEntryDetails(date) {
-    alert(date);
+    alert(${date});
     const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
     const entry = entries.find(e => e.date === date);
 
@@ -691,5 +691,6 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
