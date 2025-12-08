@@ -82,7 +82,16 @@ window.onload = () => {
     document.getElementById('admin-allowance').addEventListener('input', renderSummary);
 };
 
-
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => {
+        console.log('SW registered: ', registration);
+      }).catch(registrationError => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
 
 /**
  * Combines static holidays with user-saved holidays for reference.
@@ -743,6 +752,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
