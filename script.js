@@ -57,18 +57,14 @@ window.onload = () => {
     alert(greeting);
     // --- NEW: Holiday Initialization and Persistence ---
     const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
-    alert(greeting  + "\nstart");
     if (savedStatutory) {
         // 1. Load the editable holidays from storage
         loadedStatutoryHolidays = JSON.parse(savedStatutory);
-        
-        alert(greeting  + "\ntrue");
     } else {
         // 2. If not saved, use the hardcoded constant and save it for the future
         loadedStatutoryHolidays = STATIC_HOLIDAYS;
         localStorage.setItem(STATIC_HOLIDAYS_KEY, JSON.stringify(STATIC_HOLIDAYS));
         console.log("Statutory holidays initialized and saved for potential modification.");
-        alert(greeting  + "\nfalse");
     }
     // ---------------------------------------------------
 
@@ -747,6 +743,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
