@@ -482,104 +482,6 @@ function generatePayPeriods() {
     renderSummary(); 
 }
 
-/**
- * Calculates and displays detailed metrics for a single DTR entry.
- * @param {string} dateToDisplay - The date (YYYY-MM-DD) of the entry.
- */
-function displayEntryDetails(dateToDisplay) {
-    const entries = JSON.parse(localStorage.getItem('dtrEntries')) || [];
-    const entry = entries.find(e => e.date === dateToDisplay);
-    const detailBox = document.getElementById('entry-detail-box');
-    const detailContent = document.getElementById('detail-content');
-
-    if (!entry) {
-        detailBox.style.display = 'none';
-        return;
-    }
-
-    // --- 1. Get Settings for Calculation ---
-    const monthlySalary = parseFloat(document.getElementById('monthly-salary').value) || 0;
-    const adminAllowance = parseFloat(document.getElementById('admin-allowance').value) || 0;
-    
-    // Hourly Rate Calculation (same as in renderSummary)
-    const annualSalary = monthlySalary * 12;
-    const dailyRate = annualSalary / 261; 
-    const standardDailyHours = 8; 
-    const hourlyRate = dailyRate / standardDailyHours; 
-    
-    let totalPay = 0;
-    let dayType = 'Regular Day'; // Default type
-
-    // --- 2. Determine Day Type and Pay ---
-    let payBreakdown = '';
-    
-    // Check highest priority first (Holiday + Rest Day)
-    if (entry.regHolidayRDHrs > 0) {
-        dayType = 'Regular Holiday + Rest Day';
-        const rate = hourlyRate * HOLIDAY_RATES.REGULAR_HOLIDAY_RD;
-        totalPay = entry.regHolidayRDHrs * rate;
-        payBreakdown += `Pay: ${entry.regHolidayRDHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.REGULAR_HOLIDAY_RD * 100).toFixed(0)}%)`;
-    } else if (entry.specHolidayRDHrs > 0) {
-        dayType = 'Special Holiday + Rest Day';
-        const rate = hourlyRate * HOLIDAY_RATES.SPECIAL_HOLIDAY_RD;
-        totalPay = entry.specHolidayRDHrs * rate;
-        payBreakdown += `Pay: ${entry.specHolidayRDHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.SPECIAL_HOLIDAY_RD * 100).toFixed(0)}%)`;
-    } 
-    // Regular Holidays
-    else if (entry.regHoliHrs > 0) {
-        dayType = 'Regular Holiday';
-        const rate = hourlyRate * HOLIDAY_RATES.REGULAR;
-        totalPay = entry.regHoliHrs * rate;
-        payBreakdown += `Pay: ${entry.regHoliHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.REGULAR * 100).toFixed(0)}%)`;
-    } else if (entry.specHoliHrs > 0) {
-        dayType = 'Special Holiday';
-        const rate = hourlyRate * HOLIDAY_RATES.SPECIAL;
-        totalPay = entry.specHoliHrs * rate;
-        payBreakdown += `Pay: ${entry.specHoliHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.SPECIAL * 100).toFixed(0)}%)`;
-    } 
-    // Weekends / Rest Days
-    else if (entry.sunHrs > 0) {
-        dayType = 'Sunday (Rest Day)';
-        const rate = hourlyRate * HOLIDAY_RATES.SUNDAY;
-        totalPay = entry.sunHrs * rate;
-        payBreakdown += `Pay: ${entry.sunHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.SUNDAY * 100).toFixed(0)}%)`;
-    } else if (entry.satHrs > 0) {
-        dayType = 'Saturday (Rest Day)';
-        const rate = hourlyRate * HOLIDAY_RATES.SATURDAY;
-        totalPay = entry.satHrs * rate;
-        payBreakdown += `Pay: ${entry.satHrs.toFixed(2)}h @ ${rate.toFixed(2)}/hr (${(HOLIDAY_RATES.SATURDAY * 100).toFixed(0)}%)`;
-    }
-    // Weekday Pay (Reg Hours + OT)
-    else {
-        // Regular Hours Pay
-        const regRate = hourlyRate;
-        const regPay = entry.regHrs * regRate;
-        
-        // Weekday OT Pay (125%)
-        const otRate = hourlyRate * 1.25;
-        const otPay = entry.otHrs * otRate;
-        
-        totalPay = regPay + otPay;
-        
-        payBreakdown += `Regular: ${entry.regHrs.toFixed(2)}h @ ${regRate.toFixed(2)}/hr (${regPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br>`;
-        payBreakdown += `OT (125%): ${entry.otHrs.toFixed(2)}h @ ${otRate.toFixed(2)}/hr (${otPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}<br>`;
-    }
-
-
-    // --- 3. Render Details ---
-    detailContent.innerHTML = `
-        <p><strong>Date:</strong> ${entry.date} (${dayType})</p>
-        <p><strong>Location:</strong> ${entry.location || 'N/A'}</p>
-        <p><strong>Time In/Out:</strong> ${entry.timeIn} - ${entry.timeOut}</p>
-        <p><strong>Net Work Hours:</strong> ${(entry.regHrs + entry.otHrs + entry.satHrs + entry.sunHrs + entry.regHoliHrs + entry.specHoliHrs + entry.regHolidayRDHrs + entry.specHolidayRDHrs).toFixed(2)}h</p>
-        <hr style="margin: 10px 0; border-style: dotted;">
-        <p><strong>Hourly Breakdown:</strong></p>
-        ${payBreakdown}
-        <p style="font-size: 1.1em; margin-top: 10px;"><strong>Total Gross Pay for Day:</strong> ₱ ${totalPay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-    `;
-    
-    detailBox.style.display = 'block'; // Show the box
-}
 
 /**
  * Filters entries by the selected pay period and updates the log and summary totals.
@@ -746,6 +648,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
