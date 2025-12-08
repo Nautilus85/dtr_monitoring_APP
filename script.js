@@ -44,6 +44,18 @@ window.onload = () => {
     // Set today's date as default
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('dtr-date').value = today;
+    const currentHour = new Date().getHours();
+    let greeting;
+
+    if (currentHour < 12) {
+        greeting = "Good Morning!";
+    } else if (currentHour < 18) {
+        greeting = "Good Afternoon!";
+    } else {
+        greeting = "Good Evening!";
+    }
+    
+    alert(greeting);
 
     // --- NEW: Holiday Initialization and Persistence ---
     const savedStatutory = localStorage.getItem(STATIC_HOLIDAYS_KEY);
@@ -733,6 +745,7 @@ function renderSummary() {
         maximumFractionDigits: 2
     });
 }
+
 
 
 
